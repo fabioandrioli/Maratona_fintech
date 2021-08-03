@@ -107,6 +107,17 @@ const DOM = {
 }
 
 const Utils = {
+
+    formatAmount(value){
+        value = Number(value) * 100;
+        return value;
+    },
+
+    formatDate(date){
+        const splittedDate = date.split("-");
+        return `${splittedDate[2]}/${splittedDate[1]}/${splittedDate[0]}`;
+    },
+
     formatCurrency(value){
         const signal = Number(value) < 0 ? "-" : "";
         value = String(value).replace(/\D/g,"");
@@ -133,22 +144,47 @@ const Form = {
     },
 
     validateFields(){
+        const {description, amount, date} = Form.getValues();
+        if(description.trim() === "" || amount.trim() === "" || date.trim() === ""){
+            throw new Error("Por favor, preencha todos os campos");
+        }
         console.log(Form.getValues());
     },
-    formateData(){
+    formatValues(){
+        let {description, amount, date} = Form.getValues();
+        amount = Utils.formatAmount(amount);
+        date = Utils.formatDate(date);
+        return{
+            description,
+            date,
+            amount,
+        }
+    },
 
+    clearFields(){
+        Form.description.value = "";
+        Form.amount.value = "";
+        Form.date.value = "";
     },
     submit(event){
         event.preventDefault();
-        Form.validateFields();
-        Form.formateData();
+        try {
+           Form.validateFields();
+           const transaction = Form.formatValues();
+           Transaction.add(transaction);
+           Form.clearFields();
+           Modal.toggle();
+           App.reload();
+        } catch (error) {
+            alert(error.message)
+        }
+        
     }
 }
 
 const App = {
     init(){
        
-
         Transaction.all.forEach( transaction => {
             DOM.addTransaction(transaction);
         })
@@ -158,7 +194,7 @@ const App = {
        
     },
     reload(){
-        Transaction.clearTransactions();
+        DOM.clearTransactions();
         App.init();
     }
 }
