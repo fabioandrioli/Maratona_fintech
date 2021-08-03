@@ -30,14 +30,35 @@ const transaticons = [
 ]
 
 const Transaction = {
-    incomes(){
-
+    all: transaticons,
+    add(transaction){
+        Transaction.all.push(transaction);
+        App.reload();
     },
-    expense(){
+    incomes(){
+        let income = 0;
 
+        Transaction.all.forEach( transaction => {
+            if(transaction.amount > 0){
+                income  += transaction.amount;
+            }
+        });
+ 
+        return income;
+    },
+    expenses(){
+        let expense = 0;
+    
+        Transaction.all.forEach( transaction => {
+            if(transaction.amount < 0){
+                expense  += transaction.amount;
+            }
+        });
+
+        return expense;
     },
     total(){
-
+        return Transaction.incomes() + Transaction.expenses();
     }
 }
 
@@ -63,6 +84,24 @@ const DOM = {
         `
 
         return html;
+    },
+
+    updateBalance(){
+        document
+                .getElementById('incomeDisplay')
+                .innerHTML = Utils.formatCurrency(Transaction.incomes());
+
+        document
+                .getElementById('expenseDisplay')
+                .innerHTML = Utils.formatCurrency(Transaction.expenses());
+
+        document
+                .getElementById('totalDisplay')
+                .innerHTML = Utils.formatCurrency(Transaction.total()); 
+    },
+
+    clearTransactions(){
+        DOM.transactionsContainer.innerHTML = "";
     }
 }
 
@@ -79,6 +118,33 @@ const Utils = {
     }
 }
 
-transaticons.forEach(function(transaction){
-    DOM.addTransaction(transaction);
-})
+const App = {
+    init(){
+       
+
+        Transaction.all.forEach( transaction => {
+            DOM.addTransaction(transaction);
+        })
+        
+
+        DOM.updateBalance();
+       
+    },
+    reload(){
+        Transaction.clearTransactions();
+        App.init();
+    }
+}
+
+App.init();
+
+Transaction.add(
+    {
+        id:1,
+        description:'Luz',
+        amount:-50000,
+        date:'23/01/2021'
+    },
+)
+
+
